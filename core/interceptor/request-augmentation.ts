@@ -1,5 +1,6 @@
 import { DEFAULT_LOCALE, translate, type SupportedLocale } from '../i18n';
 import { buildPromptAugmentation } from '../prompt';
+import type { AgentScenario } from '../prompt/types';
 import {
   DEFAULT_PROMPT_INJECTION_SETTINGS,
   normalizePromptInjectionSettings,
@@ -21,6 +22,7 @@ export interface RequestAugmentationState {
   messageCount: number;
   locale?: SupportedLocale;
   promptSettings?: Partial<PromptInjectionSettings>;
+  scenario?: AgentScenario;
 }
 
 export interface RequestBodyAugmentationResult {
@@ -64,6 +66,7 @@ export function augmentRequestBody(
   const forceResponseLanguage = promptSettings.forceResponseLanguage === 'auto'
     ? null
     : promptSettings.forceResponseLanguage;
+  const scenario = state.scenario ?? 'chat';
 
   if (state.modelType) {
     body.model_type = state.modelType;
@@ -85,6 +88,7 @@ export function augmentRequestBody(
         memoryEnabled: promptSettings.memoryEnabled,
         systemPromptEnabled: promptSettings.systemPromptEnabled,
         forceResponseLanguage,
+        scenario,
       });
 
       body.prompt = augmented;
@@ -107,6 +111,7 @@ export function augmentRequestBody(
     memoryEnabled: promptSettings.memoryEnabled,
     systemPromptEnabled: promptSettings.systemPromptEnabled,
     forceResponseLanguage,
+    scenario,
   });
   body.prompt = augmented;
 

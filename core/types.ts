@@ -11,6 +11,7 @@ import type {
   ProjectConversationInput,
 } from './project/types';
 import type { PromptInjectionSettings as PromptInjectionSettingsType } from './prompt/settings';
+import type { AgentScenario } from './prompt/types';
 import type { SandboxRunRequest as SandboxRunRequestType } from './sandbox/types';
 import type {
   SavedItemInput,
@@ -594,7 +595,8 @@ export type MessageAction =
   | { type: 'CLEAR_BACKGROUND' }
   | { type: 'GET_PET' }
   | { type: 'SAVE_PET'; payload: PetConfig }
-  | { type: 'CLEAR_PET' };
+  | { type: 'CLEAR_PET' }
+  | { type: 'SCENARIO_CHANGED'; payload: { scenario: AgentScenario } };
 
 export interface PromptConfig {
   memoryTokenBudget: number;

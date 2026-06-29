@@ -512,7 +512,14 @@ export const zhCN = {
         browser: '浏览器',
         preset: '预设',
         automation: '自动化',
+        scenario: '场景',
       },
+    },
+    scenarioSelector: {
+      title: 'Agent 场景',
+      loading: '加载中...',
+      description: '选择 DeepSeek++ 注入对话的工具和行为模式。',
+      active: '当前',
     },
     browserControlPage: {
       title: '浏览器控制',

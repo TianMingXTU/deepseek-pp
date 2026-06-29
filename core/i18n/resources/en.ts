@@ -512,7 +512,14 @@ export const en = {
         browser: 'Browser',
         preset: 'Presets',
         automation: 'Automation',
+        scenario: 'Scenario',
       },
+    },
+    scenarioSelector: {
+      title: 'Agent Scenario',
+      loading: 'Loading...',
+      description: 'Choose which tools and behavior DeepSeek++ should inject into conversations.',
+      active: 'Active',
     },
     browserControlPage: {
       title: 'Browser Control',

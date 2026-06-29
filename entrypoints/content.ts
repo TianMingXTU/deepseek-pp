@@ -24,10 +24,11 @@ import {
   LEGACY_TOOL_CALLS_OPEN_TAG,
   stripToolCalls,
 } from '../core/interceptor/tool-parser';
-import { augmentRequestBody } from '../core/interceptor/request-augmentation';
+import { augmentRequestBody, type RequestAugmentationState } from '../core/interceptor/request-augmentation';
 import { containsInternalPromptMarker, sanitizeInternalPromptText } from '../core/prompt';
 import { createRestoredArtifactToolResult, executeArtifactToolCall, isArtifactToolName } from '../core/artifact';
 import type { ResponseCompletePayload, ResponseTokenSpeedPayload } from '../core/interceptor/fetch-hook';
+import type { AgentScenario } from '../core/prompt/types';
 import { shouldIgnoreEmptyTokenSpeedProgress } from '../core/interceptor/token-speed';
 import { runInlineAgentLoop } from '../core/inline-agent/loop';
 import {
@@ -319,6 +320,7 @@ let currentContentLocale: SupportedLocale = DEFAULT_LOCALE;
 let currentContentTranslator = createTranslator(DEFAULT_LOCALE);
 let currentToolDescriptors: ToolDescriptor[] = [...createDefaultToolDescriptors(currentContentLocale)];
 let currentRequestMessageCount = 0;
+let currentScenario: AgentScenario = 'chat';
 let mainWorldPort: MessagePort | null = null;
 let mainWorldBridgeReady = false;
 let activeAgentAbort: AbortController | null = null;
@@ -550,6 +552,8 @@ export default defineContentScript({
 
     addRuntimeMessageListener((message, _sender, sendResponse) => {
       if (message.type === 'STATE_UPDATED') {
+        const scenario = message.scenario;
+        if (scenario) currentScenario = scenario;
         syncToMainWorld(
           message.memories,
           message.skills,
@@ -687,6 +691,7 @@ async function handleAugmentRequestBody(data: { id?: unknown; body?: unknown }):
       messageCount: currentRequestMessageCount,
       locale: currentContentLocale,
       promptSettings: currentPromptSettings,
+      scenario: currentScenario,
     });
 
     if (result) {

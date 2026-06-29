@@ -155,6 +155,8 @@ import {
 } from '../core/multimodal/settings';
 import { getWebToolSettings, setWebToolEnabled } from '../core/tool/web-settings';
 import { getAllScenarios, applyScenarioTemplate } from '../core/scenario/store';
+import { getAgentScenario, saveAgentScenario } from '../core/prompt/scenario-store';
+import type { AgentScenario } from '../core/prompt/types';
 import { getChatEnabled } from '../core/chat/store';
 import {
   markChatLoopFinished,
@@ -824,6 +826,13 @@ async function handleMessage(
       return { ok: true };
     }
 
+    case 'SCENARIO_CHANGED': {
+      const { scenario } = message.payload as { scenario: AgentScenario };
+      await saveAgentScenario(scenario);
+      await broadcastStateUpdate(sender.tab?.id);
+      return { ok: true };
+    }
+
     case 'DIAGNOSE_WEB_SEARCH': {
       const q = typeof (message.payload as { query?: string })?.query === 'string'
         ? (message.payload as { query: string }).query : 'test';
@@ -1330,14 +1339,15 @@ async function getDeepSeekTabsForAuthRefresh(preferredTabId?: number): Promise<c
 }
 
 async function broadcastStateUpdate(excludeTabId?: number) {
-  const [memories, skills, activePreset, modelType, promptSettings] = await Promise.all([
+  const [memories, skills, activePreset, modelType, promptSettings, scenario] = await Promise.all([
     getAllMemories(),
     getAllSkills({ locale: currentBackgroundLocale }),
     getActivePreset(),
     getModelType(),
     getPromptInjectionSettings(),
+    getAgentScenario(),
   ]);
-  await broadcastToTabs({ type: 'STATE_UPDATED', memories, skills, activePreset, modelType, promptSettings }, excludeTabId);
+  await broadcastToTabs({ type: 'STATE_UPDATED', memories, skills, activePreset, modelType, promptSettings, scenario }, excludeTabId);
 }
 
 async function broadcastBackgroundUpdate(config: BackgroundConfig | null) {
@@ -2342,6 +2352,7 @@ async function buildSidepanelPrompt(prompt: string): Promise<{
   });
 
   const enabledDescriptors = filterSidepanelChatToolDescriptors(toolDescriptors);
+  const scenario = await getAgentScenario();
   const { augmented } = buildPromptAugmentation(prompt, {
     memories: memories.filter((memory) => memory.scope !== 'project'),
     presetContent: shouldInjectPreset ? activePreset?.content ?? null : null,
@@ -2351,6 +2362,7 @@ async function buildSidepanelPrompt(prompt: string): Promise<{
     memoryEnabled: promptSettings.memoryEnabled,
     systemPromptEnabled: promptSettings.systemPromptEnabled,
     forceResponseLanguage: promptSettings.forceResponseLanguage === 'auto' ? null : promptSettings.forceResponseLanguage,
+    scenario,
   });
 
   return { augmented, enabledDescriptors };
